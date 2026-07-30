@@ -7,7 +7,7 @@ import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from "../utils/firebase.js";
 
 export default function App() {
-  const [view, setView] = useState("checkout"); // 'landing' | 'checkout' | 'thankyou'
+  const [view, setView] = useState("landing"); // 'landing' | 'checkout' | 'thankyou'
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOtpPopup, setShowOtpPopup] = useState(false);
   const [message, setMessage] = useState({ msg: "", isError: false });
@@ -63,7 +63,7 @@ export default function App() {
     } catch (err) {
       clearRecaptcha();
       setMessage({
-        msg: "Could not send OTP. try again, make sure your mobile Numner is Correct !",
+        msg: "Could not send OTP. Try again, and make sure your mobile number is correct.",
         isError: true,
       });
       setIsSubmitting(false);

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Mail, Clock, ArrowLeft, MessageSquare, Gamepad2 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_BASE_URL;
+const SUPPORT_EMAIL = import.meta.env.VITE_EMAIL_SUPPORT || "devins1117@gmail.com";
+
 export default function ThankYouPage({ onBackHome }) {
   const [lastOrder, setLastOrder] = useState({ fullname: "", email: "" });
 
@@ -58,7 +60,7 @@ export default function ThankYouPage({ onBackHome }) {
           <ArrowLeft size={16} /> BACK TO HOME
         </button>
         <a
-          href={`mailto:help@lossantos-offline.local?subject=GTA V Offline Order Support for ${name}`}
+          href={`mailto:${SUPPORT_EMAIL}?subject=GTA V Offline Setup Support`}
           className="btn-hero-primary text-sm"
           style={{ textDecoration: "none" }}
         >

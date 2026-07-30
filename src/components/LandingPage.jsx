@@ -4,11 +4,9 @@ import {
   Settings,
   Users,
   Gamepad2,
-  Star,
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  AlertCircle,
   ArrowRight,
 } from "lucide-react";
 import gtaShowcase from "../assets/gta_showcase.png";
@@ -21,24 +19,23 @@ export default function LandingPage({ onBuyNow }) {
 
   const faqs = [
     {
-      question: "Is this the full game of GTA V?",
+      question: "Is this an official copy of GTA V?",
       answer:
-        "Yes, this includes the complete Grand Theft Auto V Story Mode game, fully updated and optimized for offline gameplay. It contains all single-player missions, locations, and characters.",
+        "No. Los Santos Offline is an independent installation and setup support service for customers who already own a legitimate GTA V PC copy. We do not sell Rockstar Games software, accounts, license keys, or cracked game files.",
     },
     {
-      question: "How does the offline mode work?",
+      question: "How does the offline setup support work?",
       answer:
-        "We bypass standard online launchers (Rockstar Games Launcher, Epic, Steam account lockouts) that require a constant internet connection. The build runs standalone on your computer, bypassing launcher-related lag and verification prompts.",
+        "We guide you through clean installation, local configuration, performance settings, backups, and troubleshooting so your legally owned GTA V PC copy is easier to run when offline play is available on your setup.",
     },
     {
       question: "How do I make the payment?",
-      answer:
-        `We support direct manual payment via UPI. In the checkout step, we provide our official UPI ID and QR code. You can scan the QR code using any app (GPay, PhonePe, Paytm, BHIM) and pay ${FORMATTED_AMOUNT}. After paying, click 'I have paid' and provide your details. We will manually verify the payment and email/text you instructions.`,
+      answer: `We support direct manual payment via UPI. In the checkout step, we provide our official UPI ID and QR code. You can scan the QR code using any app (GPay, PhonePe, Paytm, BHIM) and pay ${FORMATTED_AMOUNT}. After paying, click 'I have paid' and provide your details. We will manually verify the payment and email/text you instructions.`,
     },
     {
       question: "Will I get help with the installation?",
       answer:
-        "Absolutely. Along with the download files, we send a step-by-step video guide. If you face any issues, our team is available on WhatsApp and email to guide you through the setup until the game runs smoothly on your system.",
+        "Absolutely. Along with setup guidance, we send a step-by-step video guide. If you face any issues, our team is available on WhatsApp and email to guide you through the setup until the game runs smoothly on your system.",
     },
     {
       question: "What are the PC system requirements?",
@@ -75,7 +72,7 @@ export default function LandingPage({ onBuyNow }) {
           </a>
         </nav>
         <button className="btn-nav-buy" onClick={onBuyNow}>
-          BUY NOW - {FORMATTED_AMOUNT}
+          GET HELP - {FORMATTED_AMOUNT}
         </button>
       </header>
 
@@ -83,22 +80,22 @@ export default function LandingPage({ onBuyNow }) {
       <section className="hero">
         <div className="hero-content">
           <div className="hero-tag animate-slide-up delay-100">
-            <span style={{ color: "#00ff66", marginRight: "6px" }}>●</span> Now
-            Available • GTA V Offline Edition
+            <span style={{ color: "#00ff66", marginRight: "6px" }}>•</span> Now
+            Available • GTA V Offline Setup Support
           </div>
           <h1 className="hero-title animate-slide-up delay-300">
-            Steal the city.
+            Set up Los Santos.
             <br />
             <span className="hero-title-accent">Offline.</span>
           </h1>
           <p className="hero-desc animate-slide-up delay-500">
-            Skip the launchers, the always-online drama, and the endless
-            updates. We deliver a fully playable GTA 5 experience – installed
-            clean, configured for offline, guided by real humans.
+            Get guided GTA V PC installation help, performance configuration,
+            offline-play setup support, and real human troubleshooting for your
+            legally owned game copy.
           </p>
           <div className="hero-buttons animate-slide-up delay-700">
             <button className="btn-hero-primary" onClick={onBuyNow}>
-              GET GTA 5 • {FORMATTED_AMOUNT}
+              GET SETUP HELP • {FORMATTED_AMOUNT}
               <ArrowRight scale={87} size={40} />
             </button>
             <a
@@ -118,7 +115,7 @@ export default function LandingPage({ onBuyNow }) {
           <div className="hero-trust animate-slide-up delay-900">
             <div className="trust-item">
               <span className="trust-stars">★★★★★</span>
-              <span>4.9 from 2,400+ downloaders</span>
+              <span>Fast setup support for GTA V PC players</span>
             </div>
             <div className="trust-item">
               <span style={{ color: "#00ff66", marginRight: "4px" }}>✔</span>{" "}
@@ -135,10 +132,11 @@ export default function LandingPage({ onBuyNow }) {
       {/* Features Section */}
       <section id="features" className="section">
         <div className="section-header">
-          <h2 className="section-title">The Ultimate Offline Build</h2>
+          <h2 className="section-title">GTA V Offline Setup Help</h2>
           <p className="section-desc">
-            We optimize, configure, and package the complete GTA V experience so
-            it runs fast, independent, and completely local on your PC.
+            We help you prepare your legally owned GTA V PC installation with
+            cleaner setup steps, practical performance settings, and guided
+            troubleshooting.
           </p>
         </div>
 
@@ -147,11 +145,10 @@ export default function LandingPage({ onBuyNow }) {
             <div className="feature-icon-wrapper">
               <Shield size={32} />
             </div>
-            <h3 className="feature-title">100% Offline Independent</h3>
+            <h3 className="feature-title">Offline Setup Guidance</h3>
             <p className="feature-text">
-              No launcher connections, no login prompts, and zero risk of your
-              session getting disconnected. Just open the executable and play
-              instantly.
+              Clear steps for configuring your GTA V installation for supported
+              offline play, local backups, and common launcher troubleshooting.
             </p>
           </div>
 
@@ -159,11 +156,10 @@ export default function LandingPage({ onBuyNow }) {
             <div className="feature-icon-wrapper">
               <Settings size={32} />
             </div>
-            <h3 className="feature-title">Optimized & Clean Setup</h3>
+            <h3 className="feature-title">Optimized Clean Setup</h3>
             <p className="feature-text">
-              We remove junk temp cache files and pre-configure the graphics
-              configuration to ensure smooth frame-rates even on mid-range
-              laptops and PCs.
+              We help clean old cache, choose practical graphics settings, and
+              reduce common performance issues on mid-range laptops and PCs.
             </p>
           </div>
 
@@ -174,8 +170,8 @@ export default function LandingPage({ onBuyNow }) {
             <h3 className="feature-title">Real Human Support</h3>
             <p className="feature-text">
               No automated chatbots. You will get a dedicated guide who will
-              help you over remote support/whatsapp if you need help with
-              copy-pasting the files.
+              help you over WhatsApp or email if you need assistance during
+              installation and setup.
             </p>
           </div>
         </div>
@@ -186,12 +182,12 @@ export default function LandingPage({ onBuyNow }) {
         <div className="showcase-grid">
           <div className="showcase-text">
             <h2 className="section-title" style={{ textAlign: "left" }}>
-              Relive the Action in Los Santos
+              Prepare GTA V for Smooth PC Play
             </h2>
             <p className="section-desc" style={{ textAlign: "left" }}>
-              Explore Southern California's breathtaking landscape, from
-              Vinewood hills to the dusty roads of Sandy Shores. Play the iconic
-              stories of Michael, Franklin, and Trevor without launcher lag.
+              Set up your legally owned GTA V PC copy with cleaner installation
+              steps, practical graphics configuration, backup guidance, and
+              friendly troubleshooting.
             </p>
             <div
               style={{ display: "flex", flexDirection: "column", gap: "10px" }}
@@ -200,21 +196,21 @@ export default function LandingPage({ onBuyNow }) {
                 style={{ display: "flex", alignItems: "center", gap: "10px" }}
               >
                 <CheckCircle size={18} style={{ color: "#00ff66" }} />
-                <span>Pre-installed ScriptHookV for native mods support</span>
-              </div>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "10px" }}
-              >
-                <CheckCircle size={18} style={{ color: "#00ff66" }} />
-                <span>Includes all standard DLC updates and vehicles</span>
-              </div>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "10px" }}
-              >
-                <CheckCircle size={18} style={{ color: "#00ff66" }} />
                 <span>
-                  Fast compression installer for efficient storage footprint
+                  Step-by-step installation and configuration guidance
                 </span>
+              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+              >
+                <CheckCircle size={18} style={{ color: "#00ff66" }} />
+                <span>Performance tuning for common laptop and PC setups</span>
+              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+              >
+                <CheckCircle size={18} style={{ color: "#00ff66" }} />
+                <span>Backup and recovery guidance before making changes</span>
               </div>
             </div>
             <button
@@ -222,7 +218,7 @@ export default function LandingPage({ onBuyNow }) {
               style={{ marginTop: "15px", alignSelf: "flex-start" }}
               onClick={onBuyNow}
             >
-              GET SECURE ACCESS NOW • {FORMATTED_AMOUNT}
+              GET SETUP SUPPORT NOW • {FORMATTED_AMOUNT}
             </button>
           </div>
 
@@ -241,8 +237,8 @@ export default function LandingPage({ onBuyNow }) {
         <div className="section-header">
           <h2 className="section-title">Frequently Asked Questions</h2>
           <p className="section-desc">
-            Everything you need to know about the Los Santos Offline package and
-            payment process.
+            Everything you need to know about Los Santos Offline setup support
+            and payment.
           </p>
         </div>
 
@@ -283,16 +279,17 @@ export default function LandingPage({ onBuyNow }) {
             LOS SANTOS<span className="logo-accent">.OFFLINE</span>
           </div>
           <p className="footer-desc">
-            Independent download & installation service for GTA 5 offline mode.
-            Not affiliated with Rockstar Games or Take-Two Interactive. All
-            trademarks belong to their respective owners.
+            Independent GTA V PC setup and installation support service for
+            legally owned copies. Not affiliated with Rockstar Games or Take-Two
+            Interactive. All trademarks belong to their respective owners.
           </p>
         </div>
 
         <div className="footer-section">
           <h4 className="footer-section-title">Support</h4>
           <div className="footer-section-links">
-            <span>Email: help@lossantos-offline.local</span>
+            <span>Email : devinstech1117@gmail.com</span>
+            <span>Phone : 7015526876</span>
             <span>Response within 4 hours</span>
             <span>24/7 Setup Assistance</span>
           </div>

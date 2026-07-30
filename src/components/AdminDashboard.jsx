@@ -28,11 +28,23 @@ export default function AdminDashboard({ onBack }) {
     fetchOrders();
   }, []);
 
+  useEffect(() => {
+    const robotsMeta = document.querySelector('meta[name="robots"]');
+    const originalRobots = robotsMeta?.getAttribute("content");
+    robotsMeta?.setAttribute("content", "noindex, nofollow");
+
+    return () => {
+      if (originalRobots) {
+        robotsMeta?.setAttribute("content", originalRobots);
+      }
+    };
+  }, []);
+
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-      let res = await fetch("http://localhost:3000/auth/login", {
+      let res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -58,7 +70,7 @@ export default function AdminDashboard({ onBack }) {
     e.preventDefault();
     try {
       setLoading(true);
-      let res = await fetch("http://localhost:3000/auth/register", {
+      let res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userName, email, password }),

@@ -103,7 +103,10 @@ export default function CheckoutPage({
       let { success } = await response.json();
 
       if (!success) {
-        setMessage("something went wrong contact our mail");
+        setMessage({
+          msg: "Something went wrong. Please contact support.",
+          isError: true,
+        });
         return;
       }
 
@@ -134,7 +137,7 @@ export default function CheckoutPage({
       console.log(error);
       setShowOtpPopup(false);
       setIsSubmitting(false);
-      setMessage({ msg: "somthing went wrong" });
+      setMessage({ msg: "Something went wrong.", isError: true });
       setTimeout(() => {
         setMessage({});
       }, 20000);
@@ -418,7 +421,7 @@ export default function CheckoutPage({
                       }}
                     >
                       This is required so we can verify your payment on our end
-                      before sending the download files.
+                      before sending setup instructions.
                     </p>
                   </div>
                 </div>
@@ -496,7 +499,7 @@ export default function CheckoutPage({
               />
               <span>
                 Your details are secure. Once payment is verified, download
-                links are sent to your email.
+                setup instructions are sent to your email.
               </span>
             </div>
           </div>
