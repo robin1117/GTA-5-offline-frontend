@@ -21,7 +21,7 @@ export default function LandingPage({ onBuyNow }) {
     {
       question: "Is this an official copy of GTA V?",
       answer:
-        "No. Los Santos Offline is an independent installation and setup support service for customers who already own a legitimate GTA V PC copy. We do not sell Rockstar Games software, accounts, license keys, or cracked game files.",
+        "yes its from Official but the difference is you can play it without internet is an independent installation and setup support service for customers who already own a legitimate GTA V PC copy. We do not sell Rockstar Games software, accounts, license keys, or cracked game files.",
     },
     {
       question: "How does the offline setup support work?",
@@ -124,6 +124,10 @@ export default function LandingPage({ onBuyNow }) {
             <div className="trust-item">
               <span style={{ color: "#00ff66", marginRight: "4px" }}>✔</span>{" "}
               Human support • No bots
+            </div>
+            <div className="trust-item">
+              <span style={{ color: "#00ff66", marginRight: "4px" }}>✔</span>{" "}
+              Life Time access • full support
             </div>
           </div>
         </div>
