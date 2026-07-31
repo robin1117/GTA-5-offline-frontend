@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   RefreshCw,
   Search,
-  ArrowLeft,
   Trash2,
   CheckCircle2,
   UserCheck,
   Shield,
 } from "lucide-react";
 
-export default function AdminDashboard({ onBack }) {
+export default function AdminDashboard() {
   const API_BASE = import.meta.env.VITE_BASE_URL;
-  const [view, setView] = useState("dashboard"); // 'login' | 'register' | 'dashboard'
+  const [view, setView] = useState(""); // 'login' | 'register' | 'dashboard'
 
   // Login // register
   const [email, setEmail] = useState("");
@@ -22,22 +21,38 @@ export default function AdminDashboard({ onBack }) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
-  const [isLogined, setIsLogined] = useState(false);
+
+  const getOrdersFromResponse = (data) => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.orders)) return data.orders;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  };
+
+  const fetchOrders = async () => {
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/orders?search=${search}`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch orders");
+      setView("dashboard");
+      const data = await res.json();
+
+      // console.log(data);
+      setOrders(getOrdersFromResponse(data));
+    } catch (err) {
+      setView("login");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
-  }, []);
-
-  useEffect(() => {
-    const robotsMeta = document.querySelector('meta[name="robots"]');
-    const originalRobots = robotsMeta?.getAttribute("content");
-    robotsMeta?.setAttribute("content", "noindex, nofollow");
-
-    return () => {
-      if (originalRobots) {
-        robotsMeta?.setAttribute("content", originalRobots);
-      }
-    };
   }, []);
 
   const handleLoginSubmit = async (e) => {
@@ -94,34 +109,6 @@ export default function AdminDashboard({ onBack }) {
     }
   };
 
-  const fetchOrders = async () => {
-    setLoading(true);
-
-    console.log(API_BASE);
-    try {
-      const res = await fetch(`${API_BASE}/orders`, { credentials: "include" });
-      console.log(res);
-      // if (!res.ok) throw new Error("Failed to fetch orders");
-      // const data = await res.json();
-      // setOrders(data);
-    } catch (err) {
-      // console.error(err);
-      // // Fallback local storage for demo mode
-      // const localOrders = localStorage.getItem("demo_orders");
-      // if (localOrders) {
-      //   setOrders(JSON.parse(localOrders));
-      // } else {
-      //   setOrders([]);
-      // }
-      // showMsg(
-      //   "Running in demo/offline mode. Fetching local simulation orders.",
-      //   "warning",
-      // );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const showMsg = (text, type = "success") => {
     setMessage({ text, type });
     setTimeout(() => setMessage(null), 5000);
@@ -142,7 +129,7 @@ export default function AdminDashboard({ onBack }) {
     } catch (err) {
       console.warn("Backend offline, updating local mock state.");
       // Local update
-      const updatedOrders = orders.map((o) => {
+      const updatedOrders = getOrdersFromResponse(orders).map((o) => {
         if (o._id === orderId) {
           return { ...o, status: newStatus };
         }
@@ -168,14 +155,16 @@ export default function AdminDashboard({ onBack }) {
       fetchOrders();
     } catch (err) {
       console.warn("Backend offline, deleting local mock state.");
-      const updatedOrders = orders.filter((o) => o._id !== orderId);
+      const updatedOrders = getOrdersFromResponse(orders).filter(
+        (o) => o._id !== orderId,
+      );
       setOrders(updatedOrders);
       localStorage.setItem("demo_orders", JSON.stringify(updatedOrders));
       showMsg("[Demo Mode] Order record deleted.", "success");
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = getOrdersFromResponse(orders).filter((order) => {
     const term = search.toLowerCase();
     return (
       order.fullname?.toLowerCase().includes(term) ||
@@ -308,10 +297,6 @@ export default function AdminDashboard({ onBack }) {
 
       {view === "dashboard" && (
         <>
-          <div className="back-link" onClick={onBack}>
-            <ArrowLeft size={16} /> BACK TO STOREFRONT
-          </div>
-
           <div className="admin-header">
             <div>
               <h1 className="admin-title">
@@ -411,7 +396,7 @@ export default function AdminDashboard({ onBack }) {
             </div>
           )}
 
-          {loading && orders.length === 0 ? (
+          {loading && getOrdersFromResponse(orders).length === 0 ? (
             <div
               style={{
                 textAlign: "center",

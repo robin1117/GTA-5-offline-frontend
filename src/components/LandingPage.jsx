@@ -293,8 +293,8 @@ export default function LandingPage({ onBuyNow }) {
           <h4 className="footer-section-title">Support</h4>
           <div className="footer-section-links">
             <span>Email : devinstech1117@gmail.com</span>
-            <span>Phone : 7015526876</span>
-            <span>Response within 4 hours</span>
+            <span>Phone : +91 7015526876</span>
+            <span>Response within 12 hours</span>
             <span>24/7 Setup Assistance</span>
           </div>
         </div>

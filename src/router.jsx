@@ -2,12 +2,13 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./App";
 import AdminDashboard from "./components/AdminDashboard";
 import Login from "./components/Login";
+import ErrorPage from "./components/ErrorPage";
 
 const routers = createBrowserRouter([
   {
     path: "/",
     element: <App />,
-    errorElement: <h1>Error A geya</h1>,
+    errorElement: <ErrorPage />,
   },
   {
     path: "/admin",
