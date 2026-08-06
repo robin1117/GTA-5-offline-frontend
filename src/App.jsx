@@ -15,25 +15,41 @@ export default function App() {
 
   const API_BASE = import.meta.env.VITE_BASE_URL;
 
+  // 1. Properly clear reCAPTCHA instance and DOM container
   const clearRecaptcha = () => {
-    window.recaptchaVerifier?.clear();
-    window.recaptchaVerifier = null;
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch (err) {
+        console.error("Error clearing recaptcha:", err);
+      }
+      window.recaptchaVerifier = null;
+    }
+    const container = document.getElementById("recaptcha-container");
+    if (container) {
+      container.innerHTML = "";
+    }
   };
 
+  // 2. Always create a fresh RecaptchaVerifier
   const setupRecaptcha = async () => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-        },
-      );
-    }
+    clearRecaptcha(); // Always clean up existing widget before creating a new one
+
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container",
+      {
+        size: "invisible",
+      },
+    );
+
     try {
       await window.recaptchaVerifier.render();
       return window.recaptchaVerifier;
-    } catch (error) {}
+    } catch (error) {
+      console.error("reCAPTCHA render error:", error);
+      throw error;
+    }
   };
 
   const sendOTP = async (phone) => {
@@ -130,6 +146,7 @@ export default function App() {
           setIsSubmitting={setIsSubmitting}
           setMessage={setMessage}
           setView={setView}
+          clearRecaptcha={clearRecaptcha}
         />
       )}
 

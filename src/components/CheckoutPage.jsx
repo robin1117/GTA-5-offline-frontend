@@ -33,7 +33,8 @@ export default function CheckoutPage({
   verifyOTP,
   setIsSubmitting,
   setMessage,
-  setView
+  setView,
+  clearRecaptcha,
 }) {
   const [formData, setFormData] = useState({
     fullname: "",
@@ -128,7 +129,7 @@ export default function CheckoutPage({
         setMessage({
           msg: `${confirm.msg} : ${confirm.orderId}`,
         });
-        setView('thankyou')
+        setView("thankyou");
         setTimeout(() => {
           setMessage({});
         }, 20000);
@@ -573,6 +574,7 @@ export default function CheckoutPage({
               <button
                 className="cancel-btn"
                 onClick={() => {
+                  clearRecaptcha();
                   setShowOtpPopup(false);
                   setIsSubmitting(false);
                   setMessage({});
