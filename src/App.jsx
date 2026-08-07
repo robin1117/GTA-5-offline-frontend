@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import LandingPage from "./components/LandingPage";
 import CheckoutPage from "./components/CheckoutPage";
 import ThankYouPage from "./components/ThankYouPage";
@@ -13,39 +13,56 @@ export default function App() {
   const [message, setMessage] = useState({ msg: "", isError: false });
   const [isSending, setIsSending] = useState(false);
 
+  const recaptchaVerifierRef = useRef(null);
+  const recaptchaContainerIdRef = useRef(null);
+  const isSendingOtpRef = useRef(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
+
   const API_BASE = import.meta.env.VITE_BASE_URL;
 
   // 1. Properly clear reCAPTCHA instance and DOM container
-  const clearRecaptcha = () => {
-    if (window.recaptchaVerifier) {
+  const clearRecaptcha = async () => {
+    const verifier = recaptchaVerifierRef.current;
+
+    if (verifier) {
       try {
-        window.recaptchaVerifier.clear();
+        verifier.clear?.();
+        recaptchaVerifierRef.current = null;
       } catch (err) {
         console.error("Error clearing recaptcha:", err);
       }
-      window.recaptchaVerifier = null;
     }
     const container = document.getElementById("recaptcha-container");
     if (container) {
       container.innerHTML = "";
     }
+    recaptchaContainerIdRef.current = null;
   };
 
   // 2. Always create a fresh RecaptchaVerifier
   const setupRecaptcha = async () => {
-    clearRecaptcha(); // Always clean up existing widget before creating a new one
+    await clearRecaptcha();
 
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      auth,
-      "recaptcha-container",
-      {
-        size: "invisible",
-      },
-    );
+    const containerRoot = document.getElementById("recaptcha-container");
+    if (!containerRoot) {
+      throw new Error("reCAPTCHA container was not found.");
+    }
+
+    const containerId = `recaptcha-widget-${Date.now()}`;
+    const container = document.createElement("div");
+    container.id = containerId;
+    containerRoot.appendChild(container);
+    recaptchaContainerIdRef.current = containerId;
+
+    const recaptcha = new RecaptchaVerifier(auth, containerId, {
+      size: "invisible",
+    });
+
+    recaptchaVerifierRef.current = recaptcha;
 
     try {
-      await window.recaptchaVerifier.render();
-      return window.recaptchaVerifier;
+      await recaptcha.render();
+      return recaptcha;
     } catch (error) {
       console.error("reCAPTCHA render error:", error);
       throw error;
@@ -63,6 +80,12 @@ export default function App() {
       setIsSubmitting(false);
       return;
     }
+
+    if (isSendingOtpRef.current) {
+      return null;
+    }
+
+    isSendingOtpRef.current = true;
     setIsSending(true);
     try {
       const verifier = await setupRecaptcha();
@@ -71,7 +94,7 @@ export default function App() {
         phoneNumber,
         verifier,
       );
-      window.confirmationResult = confirmation;
+      setConfirmationResult(confirmation);
 
       setMessage({ msg: `OTP sent at ${phone}`, isError: false });
       setShowOtpPopup(true);
@@ -86,17 +109,18 @@ export default function App() {
       return null;
     } finally {
       setIsSending(false);
+      isSendingOtpRef.current = false;
     }
   };
 
   const verifyOTP = async (otp) => {
     try {
       setMessage("");
-      if (!window.confirmationResult) {
+      if (!confirmationResult) {
         setMessage({ msg: "Send the OTP first.", isError: true });
         return;
       }
-      const result = await window.confirmationResult.confirm(otp);
+      const result = await confirmationResult.confirm(otp);
       setMessage({ msg: "verfying..", isError: false });
       return result;
     } catch (err) {
@@ -107,7 +131,7 @@ export default function App() {
 
   const handleSubmitOrder = async (orderDetails) => {
     setIsSubmitting(true);
-    sendOTP(orderDetails.phone);
+    await sendOTP(orderDetails.phone);
   };
 
   //==============================================================
