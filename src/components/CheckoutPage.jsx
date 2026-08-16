@@ -3,25 +3,30 @@ import {
   ArrowLeft,
   CreditCard,
   Smartphone,
-  Check,
   ShieldCheck,
-  Copy,
   Info,
 } from "lucide-react";
-import { AMOUNT, FORMATTED_AMOUNT, UPI_ID } from "../config/pricing";
+import { AMOUNT, FORMATTED_AMOUNT } from "../config/pricing";
 
 const API_BASE = import.meta.env.VITE_BASE_URL;
 const BASE_AMOUNT = 899;
 const DISCOUNT_AMOUNT = Math.max(BASE_AMOUNT - Number(AMOUNT), 0);
 const FORMATTED_BASE_AMOUNT = `₹${BASE_AMOUNT}`;
 const FORMATTED_DISCOUNT_AMOUNT = `₹${DISCOUNT_AMOUNT}`;
-const UPI_REFERENCE_PATTERN = /^\d{12}$/;
-const COUNTRY_CALLING_CODES = {
-  India: "+91",
-  Pakistan: "+92",
-  Bangladesh: "+880",
-  Nepal: "+977",
-  "Sri Lanka": "+94",
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
 };
 
 export default function CheckoutPage({
@@ -44,14 +49,13 @@ export default function CheckoutPage({
     address: "",
     city: "",
     zip: "",
-    paymentMethod: "upi",
-    upiId: UPI_ID,
+    paymentMethod: "razorpay",
     transactionRef: "",
     hasPaid: false,
   });
 
-  const [copied, setCopied] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [isRazorpayOpening, setIsRazorpayOpening] = useState(false);
 
   const [otp, setOtp] = useState("");
 
@@ -65,33 +69,130 @@ export default function CheckoutPage({
     setMessage({});
   };
 
-  // const getPhoneWithCountryCode = () => {
-  //   const countryCode = COUNTRY_CALLING_CODES[formData.country];
-  //   const digitsOnly = formData.phone.replace(/\D/g, "");
-  //   const withoutInternationalPrefix = digitsOnly.replace(/^00+/, "");
+  const createRazorpayOrder = async () => {
+    const response = await fetch(`${API_BASE}/create-razorpay-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        ...formData,
+        paymentMethod: "razorpay",
+      }),
+    });
 
-  //   if (!countryCode) {
-  //     return formData.phone.trim().startsWith("+")
-  //       ? `+${withoutInternationalPrefix}`
-  //       : formData.phone.trim();
-  //   }
+    const order = await response.json();
+    if (!response.ok || !order.success) {
+      throw new Error(order.msg || "Could not create Razorpay order.");
+    }
 
-  //   const codeDigits = countryCode.replace("+", "");
-  //   const nationalNumber = withoutInternationalPrefix
-  //     .replace(new RegExp(`^${codeDigits}`), "")
-  //     .replace(/^0+/, "");
+    return order;
+  };
 
-  //   return `${countryCode}${nationalNumber}`;
-  // };
+  const verifyRazorpayPayment = async (razorpayResponse) => {
+    const response = await fetch(`${API_BASE}/verify-razorpay-payment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        ...formData,
+        paymentMethod: "razorpay",
+        razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+        razorpayOrderId: razorpayResponse.razorpay_order_id,
+        razorpaySignature: razorpayResponse.razorpay_signature,
+      }),
+    });
+    const confirm = await response.json();
 
-  const getNormalizedTransactionRef = () => {
-    return formData.transactionRef.replace(/[\s-]/g, "");
+    if (confirm.orderId) {
+      setShowOtpPopup(false);
+      setIsSubmitting(false);
+      setIsRazorpayOpening(false);
+      setMessage({
+        msg: `${confirm.msg} : ${confirm.orderId}`,
+      });
+      setView("thankyou");
+      setTimeout(() => {
+        setMessage({});
+      }, 20000);
+      return;
+    }
+
+    throw new Error(confirm.msg || "Order confirmation failed.");
+  };
+
+  const openRazorpayCheckout = async () => {
+    setIsRazorpayOpening(true);
+    setMessage({ msg: "Opening Razorpay checkout...", isError: false });
+
+    try {
+      const [order, isLoaded] = await Promise.all([
+        createRazorpayOrder(),
+        loadRazorpayScript(),
+      ]);
+
+      if (!isLoaded) {
+        throw new Error("Could not load Razorpay checkout. Please try again.");
+      }
+
+      const razorpay = new window.Razorpay({
+        key: order.key,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "Los Santos Offline",
+        description: "GTA V Offline Package",
+        prefill: {
+          name: formData.fullname,
+          email: formData.email,
+          contact: formData.phone.replace(/\D/g, ""),
+        },
+        notes: {
+          city: formData.city,
+          country: formData.country,
+        },
+        theme: {
+          color: "#00ff66",
+        },
+        handler: async (response) => {
+          try {
+            setMessage({
+              msg: "Payment received. Verifying payment...",
+              isError: false,
+            });
+            await verifyRazorpayPayment(response);
+          } catch (error) {
+            console.error(error);
+            setIsSubmitting(false);
+            setIsRazorpayOpening(false);
+            setMessage({
+              msg: "Payment completed, but verification failed. Please contact support with your payment ID.",
+              isError: true,
+            });
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsSubmitting(false);
+            setIsRazorpayOpening(false);
+            setMessage({});
+          },
+        },
+      });
+
+      setShowOtpPopup(false);
+      razorpay.open();
+    } catch (error) {
+      console.error(error);
+      setMessage({ msg: error.message, isError: true });
+      setIsSubmitting(false);
+      setIsRazorpayOpening(false);
+    }
   };
 
   const handleVerifiyOtp = async (e) => {
     try {
-      let verifiyDetails = await verifyOTP(otp);
-      if (verifiyDetails.isError) {
+      const verifiyDetails = await verifyOTP(otp);
+      if (!verifiyDetails || verifiyDetails.isError) {
         return;
       }
       const response = await fetch(`${API_BASE}/auth/verifiy`, {
@@ -111,44 +212,17 @@ export default function CheckoutPage({
         return;
       }
 
-      const orderConfirm = await fetch(`${API_BASE}/orderConfirm`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          ...formData,
-          // phone: getPhoneWithCountryCode(),
-          transactionRef: getNormalizedTransactionRef(),
-        }),
-      });
-      let confirm = await orderConfirm.json();
-
-      if (confirm.orderId) {
-        setShowOtpPopup(false);
-        setIsSubmitting(false);
-        setMessage({
-          msg: `${confirm.msg} : ${confirm.orderId}`,
-        });
-        setView("thankyou");
-        setTimeout(() => {
-          setMessage({});
-        }, 20000);
-      }
+      await openRazorpayCheckout();
     } catch (error) {
       console.log(error);
       setShowOtpPopup(false);
       setIsSubmitting(false);
+      setIsRazorpayOpening(false);
       setMessage({ msg: "Something went wrong.", isError: true });
       setTimeout(() => {
         setMessage({});
       }, 20000);
     }
-  };
-
-  const handleCopyUpi = () => {
-    navigator.clipboard.writeText(formData.upiId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSubmit = (e) => {
@@ -164,35 +238,11 @@ export default function CheckoutPage({
       setValidationError("Please fill out the billing address.");
       return;
     }
-    if (!formData.hasPaid) {
-      setValidationError(
-        "Please confirm that you have completed the UPI payment first.",
-      );
-      return;
-    }
-    if (!formData.transactionRef) {
-      setValidationError(
-        "Please enter your UPI Transaction Ref / UTR number for verification.",
-      );
-      return;
-    }
-    if (!UPI_REFERENCE_PATTERN.test(getNormalizedTransactionRef())) {
-      setValidationError(
-        "Please enter a valid 12-digit UPI Ref / UTR number. Spaces or hyphens are okay.",
-      );
-      return;
-    }
-
-    // Call submit handler
     onSubmitOrder({
       ...formData,
-      // phone: getPhoneWithCountryCode(),
-      transactionRef: getNormalizedTransactionRef(),
+      paymentMethod: "razorpay",
     });
   };
-
-  const upiURI = `upi://pay?pa=${formData.upiId}&pn=Los%20Santos%20Offline&am=${AMOUNT}&cu=INR&tn=GTA%20V%20Offline`;
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&color=000&data=${encodeURIComponent(upiURI)}`;
 
   return (
     <div className="checkout-container">
@@ -326,109 +376,6 @@ export default function CheckoutPage({
           </div>
 
           {/* 03. Payment Method */}
-          <div className="checkout-section">
-            <h2 className="checkout-section-title">
-              <span>03.</span> Payment Method
-            </h2>
-
-            <div className="payment-tabs">
-              <div
-                className={`payment-tab ${formData.paymentMethod === "card" ? "active" : "disabled"}`}
-                type="button"
-                onClick={() => {}}
-              >
-                <CreditCard size={18} /> CARD
-              </div>
-              <div
-                className={`payment-tab ${formData.paymentMethod === "upi" ? "active" : ""}`}
-                type="button"
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, paymentMethod: "upi" }))
-                }
-              >
-                <Smartphone size={18} /> UPI - INDIA
-              </div>
-            </div>
-
-            {formData.paymentMethod === "upi" && (
-              <div className="upi-payment-panel">
-                <p className="upi-instruction">
-                  Scan the QR code below using any UPI app (GPay, PhonePe,
-                  Paytm, BHIM) to send <strong>{FORMATTED_AMOUNT}</strong>{" "}
-                  manually, or copy the UPI ID.
-                </p>
-
-                <div className="qr-code-wrapper">
-                  <img
-                    src={qrCodeUrl}
-                    alt="UPI Payment QR Code"
-                    className="qr-code-img"
-                  />
-                  <div className="qr-amount-badge">PAY {FORMATTED_AMOUNT}</div>
-                </div>
-
-                <div className="upi-id-box">
-                  <span className="upi-id-text">{formData.upiId}</span>
-                  <button
-                    type="button"
-                    className="btn-copy-upi"
-                    onClick={handleCopyUpi}
-                    title="Copy UPI ID"
-                  >
-                    {copied ? (
-                      <Check size={16} style={{ color: "#00ff66" }} />
-                    ) : (
-                      <Copy size={16} />
-                    )}
-                  </button>
-                </div>
-
-                <div className="upi-confirmation-box">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="hasPaid"
-                      checked={formData.hasPaid}
-                      onChange={handleChange}
-                      required
-                    />
-                    <span>
-                      Yes, I have completed the manual payment of{" "}
-                      <strong>{FORMATTED_AMOUNT}</strong> using the QR Code /
-                      UPI ID.
-                    </span>
-                  </label>
-
-                  <div className="form-group" style={{ marginTop: "15px" }}>
-                    <label htmlFor="transactionRef">
-                      UPI Transaction ID / Ref / UTR Number
-                    </label>
-                    <input
-                      type="text"
-                      id="transactionRef"
-                      name="transactionRef"
-                      value={formData.transactionRef}
-                      onChange={handleChange}
-                      inputMode="numeric"
-                      autoComplete="off"
-                      placeholder="e.g. 12-digit Ref or UPI Transaction Number"
-                      required
-                    />
-                    <p
-                      style={{
-                        fontSize: "0.7rem",
-                        color: "var(--text-muted)",
-                        marginTop: "4px",
-                      }}
-                    >
-                      This is required so we can verify your payment on our end
-                      before sending setup instructions.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Right Column: Order Summary & Action */}
@@ -486,9 +433,9 @@ export default function CheckoutPage({
             <button
               type="submit"
               className="btn-checkout-submit"
-              disabled={isSubmitting || !formData.hasPaid}
+              disabled={isSubmitting || isRazorpayOpening}
             >
-              {isSubmitting
+              {isSubmitting || isRazorpayOpening
                 ? "Processing..."
                 : `SUBMIT ORDER • ${FORMATTED_AMOUNT}`}
             </button>
@@ -512,15 +459,14 @@ export default function CheckoutPage({
                 <div className="step-num">01</div>
                 <div className="step-desc">
                   <strong>You submit this form.</strong> Your billing details
-                  and transaction reference are uploaded to our secure backend.
+                  are checked before mobile verification starts.
                 </div>
               </div>
               <div className="step-item">
                 <div className="step-num">02</div>
                 <div className="step-desc">
-                  <strong>We verify your payment.</strong> Our support staff
-                  will check your UPI transaction ID against our bank statements
-                  manually.
+                  <strong>You complete payment.</strong> Razorpay opens only
+                  after your mobile number is verified.
                 </div>
               </div>
               <div className="step-item">
@@ -545,6 +491,7 @@ export default function CheckoutPage({
               onClick={() => {
                 setShowOtpPopup(false);
                 setIsSubmitting(false);
+                setIsRazorpayOpening(false);
                 setMessage({});
               }}
             >
@@ -577,6 +524,7 @@ export default function CheckoutPage({
                   clearRecaptcha();
                   setShowOtpPopup(false);
                   setIsSubmitting(false);
+                  setIsRazorpayOpening(false);
                   setMessage({});
                 }}
               >
