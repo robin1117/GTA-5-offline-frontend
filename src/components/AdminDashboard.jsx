@@ -43,6 +43,7 @@ export default function AdminDashboard() {
 
       // console.log(data);
       setOrders(getOrdersFromResponse(data));
+      console.log(orders);
     } catch (err) {
       setView("login");
       console.error(err);
@@ -523,15 +524,17 @@ export default function AdminDashboard() {
 
                       {/* Status */}
                       <td>
-                        <span className={`status-badge ${order.status}`}>
-                          {order.status}
+                        <span
+                          className={`status-badge ${order.hasPaid ? "completed" : "pending"}`}
+                        >
+                          {order.hasPaid ? "paid" : "not paid"}
                         </span>
                       </td>
 
                       {/* Actions */}
                       <td>
                         <div style={{ display: "flex", gap: "8px" }}>
-                          {order.status === "pending" && (
+                          {order.hasPaid && (
                             <button
                               onClick={() =>
                                 updateOrderStatus(order._id, "contacted")
@@ -546,34 +549,6 @@ export default function AdminDashboard() {
                               <UserCheck size={12} /> Contacted
                             </button>
                           )}
-
-                          {order.status === "contacted" && (
-                            <button
-                              onClick={() =>
-                                updateOrderStatus(order._id, "completed")
-                              }
-                              className="btn-table-action"
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
-                              }}
-                            >
-                              <CheckCircle2 size={12} /> Complete
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => deleteOrder(order._id)}
-                            className="btn-table-action"
-                            style={{
-                              border: "1px solid rgba(239, 68, 68, 0.2)",
-                              color: "#ef4444",
-                            }}
-                            title="Delete record"
-                          >
-                            <Trash2 size={12} />
-                          </button>
                         </div>
                       </td>
                     </tr>

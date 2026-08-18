@@ -79,12 +79,11 @@ export default function CheckoutPage({
         paymentMethod: "razorpay",
       }),
     });
-
     const order = await response.json();
+
     if (!response.ok || !order.success) {
       throw new Error(order.msg || "Could not create Razorpay order.");
     }
-
     return order;
   };
 
@@ -125,6 +124,7 @@ export default function CheckoutPage({
     setMessage({ msg: "Opening Razorpay checkout...", isError: false });
 
     try {
+
       const [order, isLoaded] = await Promise.all([
         createRazorpayOrder(),
         loadRazorpayScript(),
@@ -136,8 +136,6 @@ export default function CheckoutPage({
 
       const razorpay = new window.Razorpay({
         key: order.key,
-        amount: order.amount,
-        currency: order.currency,
         order_id: order.orderId,
         name: "Los Santos Offline",
         description: "GTA V Offline Package",
@@ -186,6 +184,8 @@ export default function CheckoutPage({
       setMessage({ msg: error.message, isError: true });
       setIsSubmitting(false);
       setIsRazorpayOpening(false);
+      setShowOtpPopup(false);
+      setOtp("");
     }
   };
 
